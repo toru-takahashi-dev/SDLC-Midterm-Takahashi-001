@@ -165,7 +165,8 @@ namespace ExpenseTracker.Tests
             
             // Verify it was updated in the database
             var dbExpense = await context.Expenses.FindAsync(1);
-            Assert.Equal("Dinner", dbExpense.Description);
+            Assert.NotNull(dbExpense); // First verify it's not null
+            Assert.Equal("Dinner", dbExpense!.Description); // Use null-forgiving operator
             Assert.Equal(30.00m, dbExpense.Amount);
         }
         

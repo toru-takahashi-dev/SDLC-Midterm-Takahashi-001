@@ -2,8 +2,8 @@
 
 using System.Text;
 using ExpenseTracker.Data;
-using [Organization].AspNetCore.Authentication.JwtBearer;
-using [Organization].EntityFrameworkCore;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 

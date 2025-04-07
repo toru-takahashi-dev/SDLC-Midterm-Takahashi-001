@@ -1,0 +1,7 @@
+npm test
+
+# Run lint-staged
+npx lint-staged
+
+# Add secrets scanning to pre-commit hook
+npx detect-secrets-hook --baseline .secrets.baseline

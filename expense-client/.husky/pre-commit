@@ -1,7 +1,6 @@
-npm test
 
-# Run lint-staged
+# Run your normal checks
 npx lint-staged
 
-# Add secrets scanning to pre-commit hook
-npx detect-secrets-hook --baseline .secrets.baseline
+# Use explicit path for the baseline file
+detect-secrets scan

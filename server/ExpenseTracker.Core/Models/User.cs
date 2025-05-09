@@ -18,8 +18,10 @@ namespace ExpenseTracker.Core.Models
         [StringLength(100)]
         public required string Email { get; set; }
         
-        [Required]
-        public required string PasswordHash { get; set; }
+        [StringLength(255)]
+        public string? PasswordHash { get; set; }
+        
+        public bool IsExternalAuth { get; set; } = false;
         
         public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
         

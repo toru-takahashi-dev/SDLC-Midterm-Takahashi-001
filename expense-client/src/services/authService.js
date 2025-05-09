@@ -1,58 +1,60 @@
 // src/services/authService.js
 import axios from './axiosConfig';
+import { loginRequest } from '../authConfig';
 
 const API_URL = '/api/auth';
 
-export const registerUser = async (userData) => {
+export const loginUser = async (msalInstance) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, userData);
-    return response.data;
+    // Initiate login redirect
+    await msalInstance.loginRedirect(loginRequest);
   } catch (error) {
-    console.error('Error registering user:', error);
+    console.error('Azure AD Login failed:', error);
     throw error;
   }
 };
 
-export const loginUser = async (email, password) => {
+export const logoutUser = async (msalInstance) => {
   try {
-    const response = await axios.post(`${API_URL}/login`, { email, password });
-    return response.data;
+    await msalInstance.logoutRedirect({
+      postLogoutRedirectUri: "/"
+    });
   } catch (error) {
-    console.error('Error logging in:', error);
+    console.error('Logout failed:', error);
     throw error;
   }
 };
 
-export const getCurrentUser = async () => {
+export const getCurrentUser = async (msalInstance) => {
   try {
-    const token = localStorage.getItem('token');
-    if (!token) return null;
+    const accounts = msalInstance.getAllAccounts();
     
-    // No need to manually set Authorization header - handled by axios interceptor
-    const response = await axios.get(`${API_URL}/me`);
-    return response.data;
+    if (accounts.length > 0) {
+      const account = accounts[0];
+      
+      // Acquire token silently
+      const tokenResponse = await msalInstance.acquireTokenSilent({
+        ...loginRequest,
+        account: account
+      });
+
+      // Fetch user details using the acquired token
+      const response = await axios.get(`${API_URL}/me`, {
+        headers: {
+          'Authorization': `Bearer ${tokenResponse.accessToken}`
+        }
+      });
+
+      return {
+        ...response.data,
+        token: tokenResponse.accessToken
+      };
+    }
+    return null;
   } catch (error) {
     console.error('Error fetching current user:', error);
     throw error;
   }
 };
 
-export const requestPasswordReset = async (email) => {
-  try {
-    const response = await axios.post(`${API_URL}/forgot-password`, { email });
-    return response.data;
-  } catch (error) {
-    console.error('Error requesting password reset:', error);
-    throw error;
-  }
-};
-
-export const resetPassword = async (token, password) => {
-  try {
-    const response = await axios.post(`${API_URL}/reset-password`, { token, password });
-    return response.data;
-  } catch (error) {
-    console.error('Error resetting password:', error);
-    throw error;
-  }
-};
+// Removed old registration and password reset methods

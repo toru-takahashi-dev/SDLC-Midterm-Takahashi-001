@@ -14,11 +14,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.IdentityModel.Tokens;
 using BC = BCrypt.Net.BCrypt;
+using Microsoft.AspNetCore.Cors;
 
 namespace ExpenseTracker.API.Controllers
 {
     [Route("api/[controller]")]
     [ApiController]
+    
     public class AuthController : ControllerBase
     {
         private readonly ExpenseTrackerDbContext _context;

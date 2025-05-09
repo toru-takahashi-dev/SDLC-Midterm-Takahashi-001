@@ -11,12 +11,14 @@ using ExpenseTracker.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.Cors;
 
 namespace ExpenseTracker.API.Controllers
 {
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    
     public class ExpensesController : ControllerBase
     {
         private readonly ExpenseTrackerDbContext _context;

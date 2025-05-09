@@ -5,13 +5,60 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using Microsoft.OpenApi.Models;
 
+using Microsoft.Extensions.Configuration;
+using Microsoft.Azure.AppConfiguration.AspNetCore;
+using Azure.Identity;
+
+using Azure.Security.KeyVault.Secrets;
+using Azure.Core;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container
-builder.Services.AddDbContext<ExpenseTrackerDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+SecretClientOptions options = new SecretClientOptions()
+    {
+        Retry =
+        {
+            Delay= TimeSpan.FromSeconds(2),
+            MaxDelay = TimeSpan.FromSeconds(16),
+            MaxRetries = 5,
+            Mode = RetryMode.Exponential
+         }
+    };
+var client = new SecretClient(new Uri("https://kv-isghp-toru-dev-001.vault.azure.net/"), new DefaultAzureCredential(),options);
+
+
+try{
+    // Retrieve the secret safely
+    KeyVaultSecret databaseConnection = client.GetSecret("DefaultConnectionString");
+    
+    Console.WriteLine("Database: " + databaseConnection);
+    // Null check and safe conversion
+    string? dbConString = databaseConnection?.Value;
+
+    Console.WriteLine("Database String: " + dbConString);
+
+    if (string.IsNullOrEmpty(dbConString))
+    {
+        throw new InvalidOperationException("Database connection string is null or empty");
+    }
+
+    // Configure DbContext with the retrieved connection string
+    builder.Services.AddDbContext<ExpenseTrackerDbContext>(options =>
+        options.UseSqlServer(dbConString));
+}
+catch (Exception ex){
+    // Log the error and potentially use a fallback configuration
+    Console.WriteLine($"Error retrieving database connection: {ex.Message}");
+    
+    // Optional: Use configuration as a fallback
+    builder.Services.AddDbContext<ExpenseTrackerDbContext>(options =>
+        options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+}
 
 builder.Services.AddControllers();
+
+
 
 // Configure JWT authentication with enhanced debugging
 builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
@@ -84,15 +131,7 @@ builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
     });
 
 // Configure CORS
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy("AllowAll", policy =>
-    {
-        policy.AllowAnyOrigin()
-              .AllowAnyMethod()
-              .AllowAnyHeader();
-    });
-});
+
 
 // Configure Swagger
 builder.Services.AddSwaggerGen(c =>
@@ -157,7 +196,7 @@ if (app.Environment.IsDevelopment())
 
 app.UseRouting();
 
-app.UseCors("AllowAll");
+app.UseCors(x => x.AllowAnyHeader().AllowAnyMethod().WithOrigins(["https://app-phis-isghp-toru-dev-frontend-fwd6gbddhpafdcfj.japaneast-01.azurewebsites.net"]));
 
 app.UseAuthentication();
 app.UseAuthorization();

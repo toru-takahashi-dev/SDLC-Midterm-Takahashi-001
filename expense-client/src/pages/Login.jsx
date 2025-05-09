@@ -1,61 +1,46 @@
-// src/pages/Login.jsx
-import React, { useState, useContext } from 'react';
+import React, { useEffect, useContext } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { useMsal } from "@azure/msal-react";
 import { AuthContext } from '../context/AuthContext';
-import { loginUser } from '../services/authService';
-import './Login.css';
+import { loginRequest } from "../authConfig";
+
+import Button from 'react-bootstrap/Button';
 
 const Login = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState('');
-  const { setUser } = useContext(AuthContext);
+  const { instance } = useMsal();
   const navigate = useNavigate();
+  const { user, setUser } = useContext(AuthContext);
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const response = await loginUser(email, password);
-      localStorage.setItem('token', response.token);
-      setUser(response.user);
+  useEffect(() => {
+    // Handle redirect after login
+    instance.handleRedirectPromise()
+      .then((response) => {
+        if (response) {
+          const account = response.account;
+          setUser(account);
+          navigate('/dashboard');
+        }
+      })
+      .catch((error) => {
+        console.error('Login redirect error:', error);
+      });
+  }, [instance, navigate, setUser]);
+
+  // If already authenticated, redirect to dashboard
+  useEffect(() => {
+    if (user) {
       navigate('/dashboard');
-    } catch (err) {
-      setError('Invalid email or password');
     }
+  }, [user, navigate]);
+
+  const handleLogin = () => {
+    instance.loginRedirect(loginRequest).catch(e => {
+      console.error('Login initiation failed', e);
+    });
   };
 
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      {error && <div className="error-message">{error}</div>}
-      <form onSubmit={handleSubmit}>
-        <div className="form-group">
-          <label htmlFor="email">Email</label>
-          <input
-            type="email"
-            id="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-          />
-        </div>
-        <div className="form-group">
-          <label htmlFor="password">Password</label>
-          <input
-            type="password"
-            id="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-          />
-        </div>
-        <button type="submit" className="btn-primary">Login</button>
-      </form>
-      <div className="links">
-        <a href="/register">Register</a>
-        <a href="/forgot-password">Forgot Password?</a>
-      </div>
-    </div>
+    <Button variant="danger" onClick={handleLogin}>Sign in</Button>
   );
 };
 

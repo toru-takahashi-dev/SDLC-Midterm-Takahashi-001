@@ -1,10 +1,15 @@
 // src/pages/Dashboard.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import { getDashboardData } from '../services/dashboardService';
 import ExpenseChart from '../components/ExpenseChart';
 import ExpenseSummary from '../components/ExpenseSummary';
 import ExpenseForm from '../components/ExpenseForm';
 import ExpenseList from '../components/ExpenseList';
+import Button from 'react-bootstrap/Button';
+import { useNavigate } from 'react-router-dom'; 
+import { AuthContext } from '../context/AuthContext'; 
+import { useMsal } from "@azure/msal-react";
+
 
 const Dashboard = () => {
   const [dashboardData, setDashboardData] = useState(null);
@@ -12,6 +17,22 @@ const Dashboard = () => {
   const [error, setError] = useState('');
   const [showAddExpenseForm, setShowAddExpenseForm] = useState(false);
   const [timeFrame, setTimeFrame] = useState('month'); // 'day', 'month', 'year'
+
+  const { logout } = useContext(AuthContext);
+  const { instance } = useMsal();
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Azure AD logout
+    instance.logout().then(() => {
+      // Clear local authentication state
+      logout();
+      // Redirect to login page
+      navigate('/login');
+    }).catch((error) => {
+      console.error('Logout failed', error);
+    });
+  };
 
   useEffect(() => {
     fetchDashboardData();
@@ -41,6 +62,8 @@ const Dashboard = () => {
   return (
     <div className="dashboard-container">
       <h1>Expense Dashboard</h1>
+      
+      <Button variant="danger" onClick={handleLogout} className="logout-button" > Logout </Button>
       
       <div className="dashboard-actions">
         <button 

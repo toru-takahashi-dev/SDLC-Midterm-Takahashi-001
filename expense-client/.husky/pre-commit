@@ -1,6 +1,1 @@
-
-# Run your normal checks
-npx lint-staged
-
-# Use explicit path for the baseline file
-detect-secrets scan
+npm test

@@ -8,7 +8,9 @@
       "launchUrl": "swagger",
       "applicationUrl": "http://localhost:5016",
       "environmentVariables": {
-        "ASPNETCORE_ENVIRONMENT": "Development"
+        "ASPNETCORE_ENVIRONMENT": "Development",
+        "AZURE_APP_CONFIG_ENDPOINT": "https://appcs-isghp-toru-dev-001.azconfig.io",
+        "AZURE_KEY_VAULT_ENDPOINT": "https://kv-isghp-toru-dev-001.vault.azure.net/"
       }
     },
     "https": {

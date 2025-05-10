@@ -1,6 +1,5 @@
-// ExpenseTracker.Data/ExpenseTrackerDbContext.cs
-using ExpenseTracker.Core.Models;
 using Microsoft.EntityFrameworkCore;
+using ExpenseTracker.Core.Models; // Assuming your models are in this namespace
 
 namespace ExpenseTracker.Data
 {
@@ -10,23 +9,20 @@ namespace ExpenseTracker.Data
             : base(options)
         {
         }
-        
+
         public DbSet<User> Users { get; set; }
         public DbSet<Expense> Expenses { get; set; }
-        
+
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
             
+            // Add any specific configuration for your entities
             modelBuilder.Entity<User>()
-                .HasIndex(u => u.Email)
-                .IsUnique();
-            
+                .HasKey(u => u.Id);
+
             modelBuilder.Entity<Expense>()
-                .HasOne(e => e.User)
-                .WithMany(u => u.Expenses)
-                .HasForeignKey(e => e.UserId)
-                .OnDelete(DeleteBehavior.Cascade);
+                .HasKey(e => e.Id);
         }
     }
 }

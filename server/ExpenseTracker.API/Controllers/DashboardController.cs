@@ -6,6 +6,7 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using ExpenseTracker.Data;
 using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Cors;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 
@@ -14,6 +15,7 @@ namespace ExpenseTracker.API.Controllers
     [Authorize]
     [Route("api/[controller]")]
     [ApiController]
+    
     public class DashboardController : ControllerBase
     {
         private readonly ExpenseTrackerDbContext _context;

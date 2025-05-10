@@ -5,7 +5,11 @@ const API_URL = '/api/auth';
 
 export const registerUser = async (userData) => {
   try {
-    const response = await axios.post(`${API_URL}/register`, userData);
+    const response = await axios.post(`${API_URL}/register`, userData, {
+      headers: {
+        'Access-Control-Allow-Origin': '*'
+      }
+    });
     return response.data;
   } catch (error) {
     console.error('Error registering user:', error);

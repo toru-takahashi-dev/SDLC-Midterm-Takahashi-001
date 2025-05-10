@@ -204,7 +204,18 @@ namespace ExpenseTracker.API.Controllers
                 TotalExpenses = totalCount,
                 Page = page,
                 PageSize = pageSize,
-                Expenses = expenses
+                Expenses = expenses.Select(x => new {
+                    Id = x.Id,
+                    Date = x.Date,
+                    Category = x.Category,
+                    Description = x.Description,
+                    Amount = x.Amount,
+                    User = new UserResponse{
+                        Id = x.User.Id,
+                        Email = x.User.Email,
+                        Name = x.User.Name
+                    }
+                })
             });
         }
 

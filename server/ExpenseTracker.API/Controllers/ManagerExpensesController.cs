@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 using ExpenseTracker.Core.Enums;
+using ExpenseTracker.API.DTOs;
 
 
 namespace ExpenseTracker.API.Controllers
@@ -71,12 +72,26 @@ namespace ExpenseTracker.API.Controllers
                 .Include(e => e.User) // Include user details if needed
                 .ToListAsync();
 
+            
+
             return Ok(new 
             {
                 TotalExpenses = totalCount,
                 Page = page,
                 PageSize = pageSize,
-                Expenses = expenses
+                Expenses = expenses.Select(x => new {
+                    Id = x.Id,
+                    Date = x.Date,
+                    Category = x.Category,
+                    Description = x.Description,
+                    Amount = x.Amount,
+                    User = new UserResponse{
+                        Id = x.User.Id,
+                        Email = x.User.Email,
+                        Name = x.User.Name
+                    }
+                }).ToList()
+                
             });
         }
 
@@ -287,6 +302,17 @@ namespace ExpenseTracker.API.Controllers
     {
         public List<int> ExpenseIds { get; set; }
         public string? RejectionReason { get; set; }
+    }
+
+    public class UserResponse{
+
+        public int Id { get; set; }
+        
+        public required string Name { get; set; }
+        public required string Email { get; set; }
+
+
+
     }
 
     

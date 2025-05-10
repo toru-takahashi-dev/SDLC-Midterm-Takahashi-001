@@ -306,12 +306,98 @@ namespace ExpenseTracker.API.Controllers
                 Expenses = pendingExpenses
             });
         }
+
+        // Approve a specific expense request
+        [HttpPut("{expenseId}/approve")]
+        public async Task<IActionResult> ApproveExpense(int expenseId)
+        {
+            // Find the expense
+            var expense = await _context.Expenses
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.Id == expenseId);
+
+            // Validate expense exists
+            if (expense == null)
+                return NotFound($"Expense with ID {expenseId} not found");
+
+            // Check current status
+            if (expense.ApprovalStatus != ApprovalStatus.Pending)
+                return BadRequest($"Expense is already {expense.ApprovalStatus}");
+
+            // Update expense status
+            expense.ApprovalStatus = ApprovalStatus.Approved;
+            expense.ApprovedAt = DateTime.UtcNow;
+            
+            // Get current manager's username
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                return Ok(new 
+                { 
+                    Message = "Expense approved successfully",
+                    Expense = expense
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { Message = "An error occurred while approving the expense" });
+            }
+        }
+
+        // Deny a specific expense request
+        [HttpPut("{expenseId}/deny")]
+        public async Task<IActionResult> DenyExpense(
+            int expenseId, 
+            [FromBody] String denyRequest)
+        {
+            // Validate input
+            if (string.IsNullOrWhiteSpace(denyRequest))
+                return BadRequest("Rejection reason is required");
+
+            // Find the expense
+            var expense = await _context.Expenses
+                .Include(e => e.User)
+                .FirstOrDefaultAsync(e => e.Id == expenseId);
+
+            // Validate expense exists
+            if (expense == null)
+                return NotFound($"Expense with ID {expenseId} not found");
+
+            // Check current status
+            if (expense.ApprovalStatus != ApprovalStatus.Pending)
+                return BadRequest($"Expense is already {expense.ApprovalStatus}");
+
+            // Update expense status
+            expense.ApprovalStatus = ApprovalStatus.Rejected;
+            expense.ApprovedAt = DateTime.UtcNow;
+            expense.RejectionReason = denyRequest;
+            
+
+            try
+            {
+                await _context.SaveChangesAsync();
+
+                return Ok(new 
+                { 
+                    Message = "Expense denied successfully",
+                    Expense = expense
+                });
+            }
+            catch (Exception ex)
+            {
+                // Log the exception
+                return StatusCode(500, new { Message = "An error occurred while denying the expense" });
+            }
+        }
     }
 
     // Supporting classes for request models
     public class ExpenseRejectionRequest
     {
-        public List<int> ExpenseIds { get; set; }
+        public required List<int> ExpenseIds { get; set; }
         public string? RejectionReason { get; set; }
     }
 
